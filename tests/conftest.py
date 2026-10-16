@@ -20,3 +20,24 @@ def sample_repo(tmp_path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
     return tmp_path
+
+
+EXTRA_FILES = {
+    "debug.log": "x\n",
+    "src/trace.log": "x\n",
+    "build/out.o": "x\n",
+    "src/build/x.o": "x\n",
+    "docs/api.md": "api\n",
+    "docs/sub/deep.md": "deep\n",
+    ".statsignore": "*.log\n",
+}
+
+
+@pytest.fixture
+def sample_repo_with_ignore(sample_repo: Path) -> Path:
+    """sample_repo plus logs, build directories, nested docs and a .statsignore ignoring *.log."""
+    for name, text in EXTRA_FILES.items():
+        path = sample_repo / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+    return sample_repo
