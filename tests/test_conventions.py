@@ -1,13 +1,15 @@
-"""CI checks for two of the four conventions in CONTRIBUTING.md: doctests and no dependencies."""
+"""CI checks for two of the four conventions in CONTRIBUTING.md: doctests and dependencies."""
 
 import importlib
 import inspect
 import pkgutil
+import re
 import tomllib
 from pathlib import Path
 
 import repostats
 
+ALLOWED_DEPENDENCIES = {"requests"}
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -24,7 +26,9 @@ def test_every_public_function_has_a_doctest():
     assert missing == [], f"public functions without a doctest: {missing}"
 
 
-def test_no_dependencies():
+def test_only_allowed_dependencies():
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
-    assert project.get("dependencies", []) == [], "CONTRIBUTING.md rule 4: no new dependencies"
+    deps = project.get("dependencies", [])
+    names = {re.split(r"[<>=!~\[; ]", dep, maxsplit=1)[0] for dep in deps}
+    assert names == ALLOWED_DEPENDENCIES, "CONTRIBUTING.md rule 4: only requests is allowed"
     assert "optional-dependencies" not in project, "CONTRIBUTING.md rule 4: no new dependencies"

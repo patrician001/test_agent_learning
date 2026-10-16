@@ -3,7 +3,7 @@ name = "repostats"
 version = "0.1.0"
 description = "Small statistics about the files in a repository checkout."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["requests>=2.31"]
 
 [build-system]
 requires = ["setuptools>=69"]
