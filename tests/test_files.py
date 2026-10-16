@@ -1,3 +1,5 @@
+import pytest
+
 from repostats import count_by_extension, largest_files, list_files
 
 
@@ -31,9 +33,9 @@ def test_largest_files_default_skips_git(sample_repo):
 
 def test_largest_files_n_bounds(sample_repo):
     assert len(largest_files(sample_repo, 100)) == 5
-    assert largest_files(sample_repo, 0) == []
-    # a negative n is treated as empty rather than slicing from the end
-    assert largest_files(sample_repo, -2) == []
+    for bad in (0, -2):
+        with pytest.raises(ValueError, match="n must be at least 1"):
+            largest_files(sample_repo, bad)
 
 
 def test_largest_files_ties_by_path(sample_repo):

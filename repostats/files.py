@@ -43,6 +43,7 @@ def largest_files(root: str | Path, n: int = 5) -> list[tuple[str, int]]:
     """Return the n largest files under root as (relative path, size in bytes), largest first.
 
     Files of equal size are ordered by path. The .git directory is skipped.
+    Raises ValueError if n is less than 1.
 
     >>> import tempfile
     >>> root = Path(tempfile.mkdtemp())
@@ -51,6 +52,8 @@ def largest_files(root: str | Path, n: int = 5) -> list[tuple[str, int]]:
     >>> largest_files(root, 3)
     [('big.txt', 9), ('a.txt', 3), ('b.txt', 3)]
     """
+    if n < 1:
+        raise ValueError("n must be at least 1")
     sized = [(rel, (Path(root) / rel).stat().st_size) for rel in list_files(root)]
     sized.sort(key=lambda item: (-item[1], item[0]))
-    return sized[: max(n, 0)]
+    return sized[:n]
