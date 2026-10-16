@@ -25,6 +25,27 @@ def list_files(root: str | Path) -> list[str]:
     )
 
 
+def largest_files(root: str | Path, n: int) -> list[tuple[str, int]]:
+    """Return the n largest files under root as (relative path, size in bytes), largest first.
+
+    Ties are broken by path. The .git directory is skipped, as in list_files. Symlinks to
+    files count with the size of their target; broken symlinks are skipped.
+
+    >>> import tempfile
+    >>> root = Path(tempfile.mkdtemp())
+    >>> _ = (root / "small.txt").write_text("a")
+    >>> _ = (root / "big.txt").write_text("abcd")
+    >>> largest_files(root, 1)
+    [('big.txt', 4)]
+    """
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    base = Path(root)
+    sized = [(path, (base / path).stat().st_size) for path in list_files(base)]
+    sized.sort(key=lambda item: (-item[1], item[0]))
+    return sized[:n]
+
+
 def count_by_extension(root: str | Path) -> dict[str, int]:
     """Return how many files under root have each extension ("" for none), sorted by extension.
 
