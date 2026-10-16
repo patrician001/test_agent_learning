@@ -1,7 +1,10 @@
-"""Listing and counting the files under a directory, skipping the .git directory."""
+"""Listing, counting and TODO search of the files under a directory, skipping the .git directory."""
 
+import re
 from collections import Counter
 from pathlib import Path
+
+_TODO = re.compile(r"\bTODO\b")
 
 
 def list_files(root: str | Path) -> list[str]:
@@ -37,3 +40,28 @@ def count_by_extension(root: str | Path) -> dict[str, int]:
     """
     counts = Counter(Path(p).suffix for p in list_files(root))
     return dict(sorted(counts.items()))
+
+
+def find_todos(root: str | Path) -> list[tuple[str, int, str]]:
+    """Return (relative path, line number from 1, stripped line) for each line with the word TODO.
+
+    Results are ordered by path, then line number. The .git directory and files that are not
+    valid UTF-8 are skipped; any other read error, such as OSError, is raised.
+
+    >>> import tempfile
+    >>> root = Path(tempfile.mkdtemp())
+    >>> _ = (root / "app.py").write_text("x = 1\\n  # TODO: fix  \\n")
+    >>> find_todos(root)
+    [('app.py', 2, '# TODO: fix')]
+    """
+    base = Path(root)
+    found = []
+    for rel in list_files(base):
+        try:
+            text = (base / rel).read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for lineno, line in enumerate(text.split("\n"), start=1):
+            if _TODO.search(line):
+                found.append((rel, lineno, line.strip()))
+    return found

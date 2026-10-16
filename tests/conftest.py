@@ -20,3 +20,22 @@ def sample_repo(tmp_path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
     return tmp_path
+
+
+@pytest.fixture
+def todo_repo(sample_repo: Path) -> Path:
+    """sample_repo plus files that exercise TODO search: ordering, stripping, edge cases."""
+    files = {
+        ".git/notes.txt": b"TODO\n",
+        "docs/notes.md": b"TODO one\nmiddle\nTODO two\n",
+        "docs/indented.md": b"    TODO: indented   \n",
+        "docs/words.md": b"TODOS\nAUTODOC\ntodo\n",
+        "docs/ff.txt": b"header\x0cTODO: fix\nsecond TODO\n",
+        "docs/crlf.txt": b"a\r\nTODO: b\rTODO: c\r\n",
+        "docs/binary.bin": b"TODO \xff\n",
+    }
+    for name, data in files.items():
+        path = sample_repo / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    return sample_repo
