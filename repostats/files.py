@@ -35,5 +35,5 @@ def count_by_extension(root: str | Path) -> dict[str, int]:
     >>> count_by_extension(root)
     {'': 1, '.py': 2}
     """
-    counts = Counter(Path(p).suffix for p in list_files(root))
+    counts = Counter( Path(p).suffix for p in list_files(root) )
     return dict(sorted(counts.items()))
