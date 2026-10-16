@@ -1,5 +1,6 @@
 """Listing and counting the files under a directory, skipping the .git directory."""
 
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -37,3 +38,28 @@ def count_by_extension(root: str | Path) -> dict[str, int]:
     """
     counts = Counter(Path(p).suffix for p in list_files(root))
     return dict(sorted(counts.items()))
+
+
+def find_todos(root: str | Path) -> list[tuple[str, int, str]]:
+    """Return (relative path, line number from 1, stripped line) for each line with the word TODO.
+
+    Results are ordered by path, then line number. The .git directory and files that are
+    not valid UTF-8 are skipped. The match is the case-sensitive word TODO, so TODOS does not match.
+
+    >>> import tempfile
+    >>> root = Path(tempfile.mkdtemp())
+    >>> _ = (root / "app.py").write_text("x = 1\\n  # TODO: fix\\n")
+    >>> find_todos(root)
+    [('app.py', 2, '# TODO: fix')]
+    """
+    base = Path(root)
+    found = []
+    for rel in list_files(base):
+        try:
+            text = (base / rel).read_bytes().decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        for lineno, line in enumerate(text.split("\n"), 1):
+            if re.search(r"\bTODO\b", line):
+                found.append((rel, lineno, line.strip()))
+    return found
