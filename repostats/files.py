@@ -37,3 +37,28 @@ def count_by_extension(root: str | Path) -> dict[str, int]:
     """
     counts = Counter(Path(p).suffix for p in list_files(root))
     return dict(sorted(counts.items()))
+
+
+def count_lines(root: str | Path) -> dict[str, int]:
+    """Return the total lines of the files under root per extension ("" for none), sorted by extension.
+
+    A line is a "\\n" terminator, plus one for a final unterminated line. Files that are not valid UTF-8 are skipped.
+
+    >>> import tempfile
+    >>> root = Path(tempfile.mkdtemp())
+    >>> _ = (root / "a.py").write_text("x\\ny\\n")
+    >>> _ = (root / "b.py").write_text("z")
+    >>> _ = (root / "Makefile").write_text("m\\n")
+    >>> count_lines(root)
+    {'': 1, '.py': 3}
+    """
+    base = Path(root)
+    counts: Counter[str] = Counter()
+    for p in list_files(base):
+        try:
+            text = (base / p).read_bytes().decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
+        counts[Path(p).suffix] += lines
+    return dict(sorted(counts.items()))
