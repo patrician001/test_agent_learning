@@ -20,3 +20,18 @@ def sample_repo(tmp_path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
     return tmp_path
+
+
+@pytest.fixture
+def statsignore(sample_repo: Path):
+    """Return write(patterns, extra_files=()): add files and a .statsignore to sample_repo, return its root."""
+
+    def write(patterns: str, extra_files=()) -> Path:
+        for name in extra_files:
+            path = sample_repo / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("x\n")
+        (sample_repo / ".statsignore").write_text(patterns)
+        return sample_repo
+
+    return write
