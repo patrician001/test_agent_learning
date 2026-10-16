@@ -35,5 +35,23 @@ def count_by_extension(root: str | Path) -> dict[str, int]:
     >>> count_by_extension(root)
     {'': 1, '.py': 2}
     """
-    counts = Counter( Path(p).suffix for p in list_files(root) )
+    counts = Counter(Path(p).suffix for p in list_files(root))
     return dict(sorted(counts.items()))
+
+
+def largest_files(root: str | Path, n: int = 5) -> list[tuple[str, int]]:
+    """Return the n largest files under root as (relative path, size in bytes), largest first.
+
+    Ties are broken by path. The .git directory is skipped.
+
+    >>> import tempfile
+    >>> root = Path(tempfile.mkdtemp())
+    >>> for name, text in {"a.txt": "xx", "b.txt": "xx", "c.txt": "xxxx"}.items():
+    ...     _ = (root / name).write_text(text)
+    >>> largest_files(root, n=2)
+    [('c.txt', 4), ('a.txt', 2)]
+    """
+    base = Path(root)
+    sized = [(path, (base / path).stat().st_size) for path in list_files(base)]
+    sized.sort(key=lambda item: (-item[1], item[0]))
+    return sized[: max(n, 0)]
